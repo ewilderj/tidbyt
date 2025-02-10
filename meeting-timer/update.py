@@ -19,7 +19,7 @@ def get_time_left_in_current_meeting(event):
   end_time_str = event["end"].get("dateTime", event["end"].get("date"))
   end_time = parser.isoparse(end_time_str)
   time_left = end_time - now
-  return int(time_left.total_seconds() / 60)
+  return int((time_left.total_seconds() + 30) / 60)
 
 CMD = "pixlet render timer.star minutes="
 PUSH = "pixlet push "
