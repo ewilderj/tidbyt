@@ -13,6 +13,14 @@ from dateutil import parser
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
+CMD = "pixlet render timer.star minutes="
+PUSH = "pixlet push "
+
+# general configuration variables
+any_event = False # if False, only events with video calls will be monitored
+device_id = None # the Tidbyt device ID to push to
+calendar_id = "primary" # the calendar ID to fetch events from
+
 def get_time_left_in_current_meeting(event):
   """Calculate the time left in the current meeting."""
   now = datetime.datetime.now(datetime.timezone.utc)
@@ -21,18 +29,10 @@ def get_time_left_in_current_meeting(event):
   time_left = end_time - now
   return int((time_left.total_seconds() + 30) / 60)
 
-CMD = "pixlet render timer.star minutes="
-PUSH = "pixlet push "
-
-any_event = False
-device_id = None
-calendar_id = None
-
 def send_duration_to_display(duration):
-  # logic on what we want here let's set a flag to determine whether
-  # we push or not if we're > 7 minutes out, we only want to send it
-  # if we're a multiple of 5 minutes if we're <= 7 minutes then yes
-  # we'll always send it
+  # set a flag to determine whether we push or not. if we're >= 7
+  # minutes out, we only want to send it if we're a multiple of 5
+  # minutes if we're < 7 minutes then yes we'll always send it
 
   send_flag = False
   if duration < 7 or (duration % 5 == 0):
@@ -45,7 +45,6 @@ def send_duration_to_display(duration):
     os.system(PUSH)
   else:
     print("Not sending at", duration)
-
 
 def main():
   # We only want to run this in business hours
@@ -81,11 +80,10 @@ def main():
     events = None
     used_cache = False
     if os.path.exists("events.yml"):
-      # print("Found events.json")
       file_age = os.path.getmtime("events.yml")
       now = datetime.datetime.now().timestamp()
       if now - file_age < 600:
-        print("Using cached events")
+        # print("Using cached events")
         with open("events.yml", "r") as f:
           events = yaml.safe_load(f)
         used_cache = True
