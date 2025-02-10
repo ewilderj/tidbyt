@@ -35,7 +35,7 @@ def send_duration_to_display(duration):
   # we'll always send it
 
   send_flag = False
-  if duration < 8 or (duration % 5 == 0):
+  if duration < 7 or (duration % 5 == 0):
     send_flag = True
 
   if send_flag:
