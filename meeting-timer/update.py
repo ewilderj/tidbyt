@@ -30,10 +30,10 @@ with open("device.json") as f:
   PUSH = PUSH + data["device_id"] + " timer.webp"
 
 def send_duration_to_display(duration):
-  # logic on what we want here
-  # let's set a flag to determine whether we push or not
-  # if we're > 7 minutes out, we only want to send it if we're a multiple of 5 minutes
-  # if we're < 7 minutes then yes we'll always send it
+  # logic on what we want here let's set a flag to determine whether
+  # we push or not if we're > 7 minutes out, we only want to send it
+  # if we're a multiple of 5 minutes if we're <= 7 minutes then yes
+  # we'll always send it
 
   send_flag = False
   if duration < 8 or (duration % 5 == 0):
@@ -51,7 +51,7 @@ def send_duration_to_display(duration):
 def main():
   # We only want to run this in business hours
   now = datetime.datetime.now()
-  if now.weekday() > 8 or now.hour < 9 or now.hour > 17:
+  if now.weekday() > 4 or now.hour < 9 or now.hour > 17:
     print("Not in business hours")
     return
 
