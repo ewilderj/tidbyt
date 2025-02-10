@@ -9,6 +9,14 @@ When done, you should have saved a `credentials.json` file in the same
 folder as the script.  On the first run of the script, you'll be
 prompted to authenticate.
 
+Second, have a Tidbyt dev environment set up [as described
+here](https://tidbyt.dev/docs/build/build-for-tidbyt). Configure the
+name of the device you're targeting in `device.json`, e.g.
+
+``` json
+{"device_id": "my-wonderful-device-id-30c"}
+```
+
 ## How it works
 
 * Look for events in the primary calendar

@@ -1,5 +1,7 @@
 import datetime
 import os.path
+import json
+import yaml
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -19,13 +21,40 @@ def get_time_left_in_current_meeting(event):
   time_left = end_time - now
   return int(time_left.total_seconds() / 60)
 
+CMD = "pixlet render timer.star minutes="
+PUSH = "pixlet push "
+
+# read push destination from device.json
+with open("device.json") as f:
+  data = json.load(f)
+  PUSH = PUSH + data["device_id"] + " timer.webp"
+
 def send_duration_to_display(duration):
-  print(duration)
+  # logic on what we want here
+  # let's set a flag to determine whether we push or not
+  # if we're > 7 minutes out, we only want to send it if we're a multiple of 5 minutes
+  # if we're < 7 minutes then yes we'll always send it
+
+  send_flag = False
+  if duration < 8 or (duration % 5 == 0):
+    send_flag = True
+
+  if send_flag:
+    print("Sending at", duration)
+    cmd = CMD + str(duration)
+    os.system(cmd)
+    os.system(PUSH)
+  else:
+    print("Not sending at", duration)
+
 
 def main():
-  """Shows basic usage of the Google Calendar API.
-  Prints the start and name of the next 10 events on the user's calendar.
-  """
+  # We only want to run this in business hours
+  now = datetime.datetime.now()
+  if now.weekday() > 8 or now.hour < 9 or now.hour > 17:
+    print("Not in business hours")
+    return
+
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -48,36 +77,55 @@ def main():
   # print("Logged in, trying...")
 
   try:
-    # print("Starting something")
-    service = build("calendar", "v3", credentials=creds)
+    # if events.yml exists and is less than 10 minutes old, use it to
+    # populate events, otherwise fetch from Google
+    events = None
+    used_cache = False
+    if os.path.exists("events.yml"):
+      # print("Found events.json")
+      file_age = os.path.getmtime("events.yml")
+      now = datetime.datetime.now().timestamp()
+      if now - file_age < 600:
+        print("Using cached events")
+        with open("events.yml", "r") as f:
+          events = yaml.safe_load(f)
+        used_cache = True
 
     # Get the start and end of the current day in UTC
     now = datetime.datetime.now(datetime.timezone.utc)
-    start_of_day = datetime.datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=datetime.timezone.utc)
-    end_of_day = datetime.datetime(now.year, now.month, now.day, 23, 59, 59, tzinfo=datetime.timezone.utc)
-    time_min = start_of_day.isoformat()
-    time_max = end_of_day.isoformat()
 
-    # print("Getting today's events")
-    events_result = (
-      service.events()
-      .list(
-        calendarId="primary",
-        timeMin=time_min,
-        timeMax=time_max,
-        singleEvents=True,
-        orderBy="startTime",
-        # conferenceDataVersion=1
+    if events is None:
+      # print("Starting something")
+      service = build("calendar", "v3", credentials=creds)
+
+      start_of_day = datetime.datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=datetime.timezone.utc)
+      end_of_day = datetime.datetime(now.year, now.month, now.day, 23, 59, 59, tzinfo=datetime.timezone.utc)
+      time_min = start_of_day.isoformat()
+      time_max = end_of_day.isoformat()
+
+      # print("Getting today's events")
+      events_result = (
+        service.events()
+        .list(
+          calendarId="primary",
+          timeMin=time_min,
+          timeMax=time_max,
+          singleEvents=True,
+          orderBy="startTime",
+          # conferenceDataVersion=1
+        )
+        .execute()
       )
-      .execute()
-    )
-    events = events_result.get("items", [])
-
+      events = events_result.get("items", [])
 
     if not events:
       print("No events found for today.")
       return
 
+    # serialize events into events.yml
+    if not used_cache:
+      with open("events.yml", "w") as f:
+        yaml.dump(events, f)
 
     for event in events:
       start = event["start"].get("dateTime", event["start"].get("date"))
@@ -107,7 +155,7 @@ def main():
       end_time_str = event["end"].get("dateTime", event["end"].get("date"))
       start_time = parser.isoparse(start_time_str)
       end_time = parser.isoparse(end_time_str)
-      # print(start_time, end_time, now)
+      print(start_time, end_time, now)
       if start_time <= now <= end_time:
         time_left = get_time_left_in_current_meeting(event)
         # print(f"Time left in the current meeting: {time_left}")
