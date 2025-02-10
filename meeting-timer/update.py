@@ -24,10 +24,9 @@ def get_time_left_in_current_meeting(event):
 CMD = "pixlet render timer.star minutes="
 PUSH = "pixlet push "
 
-# read push destination from device.json
-with open("device.json") as f:
-  data = json.load(f)
-  PUSH = PUSH + data["device_id"] + " timer.webp"
+any_event = False
+device_id = None
+calendar_id = None
 
 def send_duration_to_display(duration):
   # logic on what we want here let's set a flag to determine whether
@@ -51,7 +50,7 @@ def send_duration_to_display(duration):
 def main():
   # We only want to run this in business hours
   now = datetime.datetime.now()
-  if now.weekday() > 4 or now.hour < 9 or now.hour > 17:
+  if now.weekday() > 4 or now.hour < 7 or now.hour > 17:
     print("Not in business hours")
     return
 
@@ -107,7 +106,7 @@ def main():
       events_result = (
         service.events()
         .list(
-          calendarId="primary",
+          calendarId=calendar_id,
           timeMin=time_min,
           timeMax=time_max,
           singleEvents=True,
@@ -134,7 +133,7 @@ def main():
         # print("Skipping all-day event")
         continue
 
-      print("📅", start, "👀", event["summary"])
+      print("📅", start, "👀") # , event["summary"])
 
       video = None
       # Check if the event has a video call attached
@@ -146,7 +145,7 @@ def main():
               # print(f"Video call link: {entry_point['uri']}")
               video = entry_point['uri']
 
-      if video is None:
+      if not any_event and video is None:
         # print("Skipping non-video event")
         continue
 
@@ -167,4 +166,12 @@ def main():
 
 
 if __name__ == "__main__":
+  with open("config.json") as f:
+    data = json.load(f)
+    calendar_id = data["calendar_id"]
+    device_id = data["device_id"]
+    PUSH = PUSH + data["device_id"] + " timer.webp"
+    if "any_event" in data:
+      any_event = data["any_event"] == 1
+  # print(f"Config:\n\tcalendar {calendar_id}\n\tdevice {device_id}\n\tany_event {any_event}")
   main()
