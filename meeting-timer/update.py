@@ -15,11 +15,28 @@ SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 
 CMD = "pixlet render timer.star minutes="
 PUSH = "pixlet push "
+# Default business hours
+DEFAULT_BUSINESS_HOURS = {
+    "valid_days": [0, 1, 2, 3, 4],  # Monday to Friday
+    "start_hour": 7,
+    "end_hour": 17,
+}
 
 # general configuration variables
 any_event = False # if False, only events with video calls will be monitored
 device_id = None # the Tidbyt device ID to push to
 calendar_id = "primary" # the calendar ID to fetch events from
+business_hours = DEFAULT_BUSINESS_HOURS  # Start with the defaults
+
+def is_within_business_hours(now, business_hours):
+    """Checks if the current time is within the configured business hours."""
+    day_of_week = now.weekday()
+    hour_of_day = now.hour
+
+    if day_of_week not in business_hours["valid_days"]:
+        return False
+
+    return (business_hours["start_hour"] <= hour_of_day <= business_hours["end_hour"])
 
 def get_time_left_in_current_meeting(event):
   """Calculate the time left in the current meeting."""
@@ -49,7 +66,7 @@ def send_duration_to_display(duration):
 def main():
   # We only want to run this in business hours
   now = datetime.datetime.now()
-  if now.weekday() > 4 or now.hour < 7 or now.hour > 17:
+  if not is_within_business_hours(now, business_hours):
     print("Not in business hours")
     return
 
@@ -171,5 +188,27 @@ if __name__ == "__main__":
     PUSH = PUSH + data["device_id"] + " timer.webp"
     if "any_event" in data:
       any_event = data["any_event"] == 1
+    if "business_hours" in data:
+      business_hours = data["business_hours"]
+
+      # Validate the business hours data (optional but recommended)
+      if not isinstance(business_hours.get("valid_days"), list):
+        print("Error: 'valid_days' in config.json must be a list of integers (0-6). Using defaults.")
+        business_hours = DEFAULT_BUSINESS_HOURS
+      else:
+        for day in business_hours["valid_days"]:
+          if not isinstance(day, int) or not 0 <= day <= 6:
+            print("Error: 'valid_days' must contain integers between 0 and 6. Using defaults.")
+            business_hours = DEFAULT_BUSINESS_HOURS
+            break # exit the loop if there's an invalid day
+
+      if not isinstance(business_hours.get("start_hour"), int) or not 0 <= business_hours["start_hour"] <= 23:
+        print("Error: 'start_hour' in config.json must be an integer between 0 and 23. Using defaults.")
+        business_hours = DEFAULT_BUSINESS_HOURS
+
+      if not isinstance(business_hours.get("end_hour"), int) or not 0 <= business_hours["end_hour"] <= 23:
+        print("Error: 'end_hour' in config.json must be an integer between 0 and 23. Using defaults.")
+        business_hours = DEFAULT_BUSINESS_HOURS
+
   # print(f"Config:\n\tcalendar {calendar_id}\n\tdevice {device_id}\n\tany_event {any_event}")
   main()
