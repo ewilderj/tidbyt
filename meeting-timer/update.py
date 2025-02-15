@@ -44,7 +44,7 @@ def get_time_left_in_current_meeting(event):
   end_time_str = event["end"].get("dateTime", event["end"].get("date"))
   end_time = parser.isoparse(end_time_str)
   time_left = end_time - now
-  return int((time_left.total_seconds() + 30) / 60)
+  return int((time_left.total_seconds() + 60) / 60)
 
 def send_duration_to_display(duration):
   # set a flag to determine whether we push or not. if we're >= 7
@@ -126,7 +126,6 @@ def main():
           timeMax=time_max,
           singleEvents=True,
           orderBy="startTime",
-          # conferenceDataVersion=1
         )
         .execute()
       )
