@@ -1,1 +1,10 @@
-{"device_id": "your-amazing-device", "calendar_id": "primary", "any_event": 0}
+{
+    "device_id": "your-amazing-device-30b"
+    "calendar_id": "primary",
+    "any_event": 0,
+    "business_hours": {
+        "valid_days": [0, 1, 2, 3, 4],
+        "start_hour": 7,
+        "end_hour": 18
+    }
+}
