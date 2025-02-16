@@ -19,7 +19,7 @@ whether to check if it's a video call or not in `config.json`, e.g.
 ```
 
 By default, the script only updates the display in business hours
-(Mon-Fri, 0900-1700h). You can control this by adding the
+(Mon-Fri, 0700-1700h). You can control this by adding the
 `business_hours` key to the `config.json` file, e.g. this makes the
 update run from 7am to 6pm on every day of the week.
 
