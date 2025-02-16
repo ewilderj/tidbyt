@@ -18,6 +18,20 @@ whether to check if it's a video call or not in `config.json`, e.g.
 {"device_id": "my-wonderful-device-id-30c", "any_event": 0, "calendar_id": "fred@foo.com"}
 ```
 
+By default, the script only updates the display in business hours
+(Mon-Fri, 0900-1700h). You can control this by adding the
+`business_hours` key to the `config.json` file, e.g. this makes the
+update run from 7am to 6pm on every day of the week.
+
+``` json
+    "business_hours": {
+        "valid_days": [0, 1, 2, 3, 4, 5, 6],
+        "start_hour": 7,
+        "end_hour": 18
+    }
+```
+
+
 ## How it works
 
 * Look for events in the primary calendar
