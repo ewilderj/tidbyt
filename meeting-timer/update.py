@@ -208,6 +208,4 @@ if __name__ == "__main__":
       if not isinstance(business_hours.get("end_hour"), int) or not 0 <= business_hours["end_hour"] <= 23:
         print("Error: 'end_hour' in config.json must be an integer between 0 and 23. Using defaults.")
         business_hours = DEFAULT_BUSINESS_HOURS
-
-  # print(f"Config:\n\tcalendar {calendar_id}\n\tdevice {device_id}\n\tany_event {any_event}")
   main()
