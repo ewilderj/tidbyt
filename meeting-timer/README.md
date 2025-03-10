@@ -31,6 +31,18 @@ update run from 7am to 6pm on every day of the week.
     }
 ```
 
+## Running it regularly
+
+Use the script `run.sh` in a terminal to run this observed.
+
+To run via `cron` or `launchd`, edit the script `cronned.sh` to meet
+your needs. Either install via crontab, or for `launchd`, edit the
+`.plist` file to reflect your preferred location of the scripts, then:
+
+``` bash
+$ cp com.wilderjames.meeting-timer.plist ~/Library/LaunchAgents
+$ launchctl load ~/Library/LaunchAgents/com.wilderjames.meeting-timer.plist
+```
 
 ## How it works
 
